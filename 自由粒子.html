@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        body{
+            margin: 0;
+            background: #000;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+<script>
+    var cv = document.createElement("canvas"),
+        ctx = cv.getContext("2d"),
+        w = window.innerWidth,
+        h = window.innerHeight,
+        particles = [],
+        px = w/2,    //初始位置为屏幕中间
+        py = h/2;
+
+    function init(){
+        document.body.appendChild(cv);  //增加canvas元素节点
+        cv.width = w;  //定义画布大小
+        cv.height = h;
+        requestAnimationFrame(draw);   //循环执行draw函数
+    }
+
+    function Particle(x,y){  //构造函数，参数xy
+        this.x = x;
+        this.y = y;
+        this.r = Math.random()*10;//random 返回0到1间的随机数   0-10
+        this.vy = -5;
+        this.vx = Math.random()*4 - 2;  //-2 - 2
+//        this.gravity = 0.1;
+//        this.color = 'rgba(51,153,255,0.6)';
+        this.color = 'rgba('+Math.floor(Math.random()*255)+','+  //下取整
+                             Math.floor(Math.random()*255)+','+
+                             Math.floor(Math.random()*255)+','+
+                             Math.random()+')';
+    }
+    Particle.prototype.render = function(ctx){  //给实例添加原型方法
+        ctx.save();   //保存 保存当前的绘制状态
+        ctx.beginPath();//开始
+        ctx.fillStyle = this.color; //填充颜色
+        ctx.arc(this.x,this.y,this.r,0,Math.PI*2);//pi返回圆周率3.14    创建一个圆
+        ctx.fill();  //填充
+        ctx.restore(); //释放
+    }
+    Particle.prototype.update = function(){//更新粒子出现
+        this.y += this.vy;//粒子喷出时，逐渐下落，更新状态
+        this.x += this.vx;
+        this.vy *= 0.99;
+        this.vy += 0.25;
+        if(this.x+this.vx > w || this.x + this.vx < 0){//左右碰撞检测
+            this.vx = -this.vx;
+        }
+        if(this.y+this.vy > h || this.y + this.vy < 0){//上下碰撞检测
+            this.vy = -this.vy;
+        }
+    }
+
+    function draw(){
+        for(var i=0;i<5;i++){
+            var particle =  new Particle(px,py); //实例，并传入参数pxpy
+            particles.push(particle);  //将particle添加到数组中
+        }
+
+
+        ctx.clearRect(0,0,w,h);  //清除整个canvas
+        var len = particles.length;//5
+
+        for(var i=0;i<len;i++){  //开始执行五次
+            particles[i].update();
+            particles[i].render(ctx);
+        }
+
+        if(len>=1000){
+            for(var i=0;i<5;i++){
+                particles.shift();//把数组的第一个元素从其中删除,并返回第一个元素的值
+            }
+        }
+        requestAnimationFrame(draw);
+    }
+
+    cv.onmousemove = function(e){//当鼠标指针移动到canvas上时执行一段 JavaScript  e为当前的指针是位置
+        px = e.clientX;//当事件被触发时鼠标指针向对于浏览器页面(或客户区)的水平坐标
+        py = e.clientY;
+    }
+    init();
+</script>
+</body>
+</html>
